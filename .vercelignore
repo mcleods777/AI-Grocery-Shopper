@@ -1,0 +1,4 @@
+# Vercel deploys the static site only (see vercel.json). Excluding server.js
+# stops Vercel's zero-config Node server detection from wrapping it in a
+# serverless function — the app runs in browser-only mode when hosted.
+server.js

@@ -2,9 +2,8 @@
   "name": "grocery-price-scout",
   "version": "1.0.0",
   "description": "Local grocery price comparison — tracks meat prices at your local stores and picks the store that saves you the most.",
-  "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "serve": "node server.js"
   },
   "engines": {
     "node": ">=18"
