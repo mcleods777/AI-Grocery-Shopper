@@ -149,6 +149,15 @@ table.cut-prices td:first-child { width: 60%; }
 .check-link { text-decoration: none; margin-left: 0.35rem; font-size: 0.8rem; opacity: 0.55; }
 .check-link:hover { opacity: 1; }
 
+/* price movement vs. last recorded price */
+.trend {
+  font-size: 0.72rem; font-weight: 700; border-radius: 6px;
+  padding: 0.05rem 0.3rem; white-space: nowrap; cursor: help;
+}
+.trend.up { color: #b3402a; background: var(--accent-soft); }
+.trend.down { color: var(--green); background: var(--green-soft); }
+table.cut-prices .best-row .trend.up { background: #f6d9d2; }
+
 /* ----- manage ----- */
 form.card label { display: block; margin-bottom: 0.6rem; font-size: 0.9rem; }
 form.card input {

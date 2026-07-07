@@ -21,6 +21,24 @@ function effectivePrice(rec) {
   return rec.salePricePerLb != null ? rec.salePricePerLb : rec.pricePerLb;
 }
 
+// Price movement vs. the previous recorded price (rec.history holds
+// {price, date} entries appended each time the price changes).
+function trend(rec) {
+  if (!rec.history || rec.history.length === 0) return null;
+  const prev = rec.history[rec.history.length - 1];
+  const diff = effectivePrice(rec) - prev.price;
+  if (Math.abs(diff) < 0.005) return null;
+  return { dir: diff > 0 ? 'up' : 'down', diff, prev };
+}
+
+function trendBadge(rec) {
+  const t = trend(rec);
+  if (!t) return '';
+  const arrow = t.dir === 'up' ? '▲' : '▼';
+  const sign = t.dir === 'up' ? '+' : '−';
+  return `<span class="trend ${t.dir}" title="was ${fmt(t.prev.price)} on ${esc(t.prev.date)}">${arrow}${sign}${fmt(Math.abs(t.diff)).slice(1)}</span>`;
+}
+
 function slugify(name) {
   const base = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   let id = base, i = 2;
@@ -296,7 +314,7 @@ function renderCuts() {
                    href="${esc(r.store.searchUrl.replace('{q}', encodeURIComponent(p.name)))}">🔗</a>` : '';
             return `<tr class="${i === 0 ? 'best-row' : ''}">
               <td>${i === 0 ? '🏆 ' : ''}${esc(r.store.name)}${link}</td>
-              <td class="r">${fmt(eff)}${r.rec.salePricePerLb != null ? ' 🔥' : ''}${r.rec.source === 'estimate' ? '<sup>~</sup>' : ''}</td>
+              <td class="r">${fmt(eff)}${r.rec.salePricePerLb != null ? ' 🔥' : ''}${r.rec.source === 'estimate' ? '<sup>~</sup>' : ''} ${trendBadge(r.rec)}</td>
               <td class="r muted small">${i === 0 ? '' : '+' + fmt(eff - best)}</td>
             </tr>`;
           }).join('')}
@@ -345,7 +363,7 @@ function renderPriceTable() {
         const stale = daysOld(rec.updated) > 30;
         return `<td class="price-cell ${isBest ? 'best' : ''}" data-product="${p.id}" data-store="${s.id}"
           title="Updated ${rec.updated}${rec.source === 'estimate' ? ' (estimate)' : ''}${rec.note ? ' — ' + esc(rec.note) : ''}">
-          <span class="price">${fmt(eff)}${rec.salePricePerLb != null ? ' 🔥' : ''}${rec.source === 'estimate' ? '<sup>~</sup>' : ''}${stale ? ' ⏰' : ''}</span>${link}</td>`;
+          <span class="price">${fmt(eff)}${rec.salePricePerLb != null ? ' 🔥' : ''}${rec.source === 'estimate' ? '<sup>~</sup>' : ''}${stale ? ' ⏰' : ''}</span> ${trendBadge(rec)}${link}</td>`;
       }).join('') + '</tr>';
     }
   }
@@ -381,12 +399,18 @@ async function editPrice(productId, storeId) {
     const val = parseFloat(input.replace('$', ''));
     if (isNaN(val) || val <= 0) return toast('⚠️ Not a valid price', true);
     if (rec) {
+      const prevEff = effectivePrice(rec);
+      if (Math.abs(prevEff - val) > 0.004) {
+        rec.history = rec.history || [];
+        rec.history.push({ price: prevEff, date: rec.updated });
+        if (rec.history.length > 200) rec.history.shift();
+      }
       rec.pricePerLb = val;
       rec.salePricePerLb = null;
       rec.updated = today();
       rec.source = 'user';
     } else {
-      db.prices.push({ productId, storeId, pricePerLb: val, salePricePerLb: null, note: '', updated: today(), source: 'user' });
+      db.prices.push({ productId, storeId, pricePerLb: val, salePricePerLb: null, note: '', updated: today(), source: 'user', history: [] });
     }
   }
   if (await saveDb()) {
