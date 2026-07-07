@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grocery Price Scout</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥩</text></svg>" />
+</head>
+<body>
+  <header>
+    <h1>🥩 Grocery Price Scout</h1>
+    <p class="tagline">Pick your meats — see which store saves you the most.</p>
+    <nav id="tabs">
+      <button class="tab active" data-tab="shop">🛒 Shopping List</button>
+      <button class="tab" data-tab="prices">💲 Price Board</button>
+      <button class="tab" data-tab="manage">⚙️ Manage</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ============ SHOPPING LIST TAB ============ -->
+    <section id="tab-shop" class="tab-panel active">
+      <div class="two-col">
+        <div class="col">
+          <h2>What are you buying?</h2>
+          <p class="hint">Check items and set pounds. Your list is saved automatically.</p>
+          <div id="shop-list"></div>
+        </div>
+        <div class="col">
+          <h2>Where to shop</h2>
+          <div id="results"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PRICE BOARD TAB ============ -->
+    <section id="tab-prices" class="tab-panel">
+      <h2>Price Board <span class="hint-inline">(per lb — click any price to update it)</span></h2>
+      <p class="hint">🔗 opens that store's website search for the item so you can check the real current price. Best price in each row is highlighted. Seeded prices are estimates — update them as you verify.</p>
+      <div class="table-wrap">
+        <table id="price-table"></table>
+      </div>
+    </section>
+
+    <!-- ============ MANAGE TAB ============ -->
+    <section id="tab-manage" class="tab-panel">
+      <div class="two-col">
+        <div class="col">
+          <h2>Add an item</h2>
+          <p class="hint">Meat cuts now — but anything you shop for works (eggs, milk, coffee…).</p>
+          <form id="add-product-form" class="card">
+            <label>Item name <input type="text" id="new-product-name" placeholder="e.g. Eggs (dozen)" required /></label>
+            <label>Category <input type="text" id="new-product-category" placeholder="e.g. Beef, Pork, Dairy" required list="category-list" /></label>
+            <datalist id="category-list"></datalist>
+            <button type="submit" class="btn primary">Add item</button>
+          </form>
+          <h2>Your items</h2>
+          <div id="manage-products"></div>
+        </div>
+        <div class="col">
+          <h2>Add a store</h2>
+          <form id="add-store-form" class="card">
+            <label>Store name <input type="text" id="new-store-name" placeholder="e.g. Whole Foods" required /></label>
+            <label>Search URL <input type="text" id="new-store-url" placeholder="https://store.com/search?q={q}" /></label>
+            <p class="hint">Use {q} where the search words go — powers the 🔗 price-check links.</p>
+            <label>Notes <input type="text" id="new-store-notes" placeholder="e.g. weekly ad day, membership" /></label>
+            <button type="submit" class="btn primary">Add store</button>
+          </form>
+          <h2>Your stores</h2>
+          <div id="manage-stores"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Prices are what you (or the seed data) last recorded — always double-check big purchases against the store's weekly ad.</p>
+  </footer>
+
+  <div id="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>
