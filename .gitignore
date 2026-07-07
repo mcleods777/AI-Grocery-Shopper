@@ -1,3 +1,5 @@
 node_modules/
 data/db.json.tmp
+public/db-seed.json
+.vercel/
 .DS_Store

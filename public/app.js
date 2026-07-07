@@ -1,6 +1,9 @@
 /* Grocery Price Scout — frontend logic (vanilla JS, no build step). */
 
 let db = null; // { stores, products, prices }
+// True when there is no writable backend (e.g. static hosting on Vercel);
+// price/db edits then persist to this browser's localStorage instead.
+let staticMode = false;
 // Shopping list: { [productId]: lbs } — persisted in localStorage.
 let shoppingList = JSON.parse(localStorage.getItem('shoppingList') || '{}');
 
@@ -26,6 +29,10 @@ function slugify(name) {
 }
 
 async function saveDb() {
+  if (staticMode) {
+    localStorage.setItem('dbLocal', JSON.stringify(db));
+    return true;
+  }
   const res = await fetch('/api/db', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -485,16 +492,41 @@ $('#add-store-form').addEventListener('submit', async (e) => {
 });
 
 // Boot
-fetch('/api/db')
-  .then((r) => r.json())
+async function loadDb() {
+  // Prefer the local server API (node server.js), which persists to data/db.json.
+  try {
+    const res = await fetch('/api/db');
+    if (res.ok && (res.headers.get('content-type') || '').includes('json')) {
+      return res.json();
+    }
+  } catch (_) { /* no backend — fall through to static mode */ }
+
+  // Static hosting (e.g. Vercel): edits live in this browser's localStorage,
+  // seeded from the bundled copy of the database.
+  staticMode = true;
+  const saved = localStorage.getItem('dbLocal');
+  if (saved) {
+    try { return JSON.parse(saved); } catch (_) { /* corrupted — reseed */ }
+  }
+  const res = await fetch('db-seed.json');
+  if (!res.ok) throw new Error('seed fetch failed');
+  return res.json();
+}
+
+loadDb()
   .then((data) => {
     db = data;
     // Drop shopping-list entries for products that no longer exist.
     for (const id of Object.keys(shoppingList)) {
       if (!db.products.some((p) => p.id === id)) delete shoppingList[id];
     }
+    if (staticMode) {
+      const note = document.createElement('p');
+      note.textContent = 'Browser-only mode: your price edits and items are saved on this device.';
+      document.querySelector('footer').appendChild(note);
+    }
     renderAll();
   })
   .catch(() => {
-    document.body.innerHTML = '<p style="padding:2rem">Could not load the price database. Is the server running? Start it with <code>node server.js</code>.</p>';
+    document.body.innerHTML = '<p style="padding:2rem">Could not load the price database. If you are running locally, start the server with <code>node server.js</code>.</p>';
   });

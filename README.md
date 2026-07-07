@@ -40,6 +40,10 @@ Everything lives in one human-readable file: **`data/db.json`** — stores, item
 
 > **Important:** the seeded prices are realistic *estimates* (Midwest, mid-2026) meant as a starting point. Meat prices swing week to week — use the 🔗 links and weekly ads to verify, click the price, and type in the real number. After one shopping cycle of updates the comparisons will reflect *your* actual stores.
 
+## Hosted on Vercel (browser-only mode)
+
+The app also runs as a static site (no server) — that's how the Vercel deployment works. In this mode the seeded database ships with the site (`public/db-seed.json`, generated from `data/db.json` at build time) and **your price edits, added items, and stores are saved in your browser's localStorage** — private to your device, and they survive reloads. Different devices keep their own copies. To make a price change part of the site for every device, edit `data/db.json` in the repo and redeploy.
+
 ## Why not automatic live prices?
 
 Grocery chains don't offer public price APIs, and their websites actively block automated scraping (and prices vary by *store location*, not just chain). So this app takes the reliable route: a price database **you control**, plus one-click links to each store's site to make manual verification fast. 
