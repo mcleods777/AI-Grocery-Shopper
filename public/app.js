@@ -240,6 +240,78 @@ function productName(id) {
   return p ? p.name : id;
 }
 
+// ---------- rendering: cuts & prices tab ----------
+
+let cutsFilter = 'All';
+
+const CATEGORY_EMOJI = { Beef: '🥩', Chicken: '🍗', Turkey: '🦃', Pork: '🥓' };
+
+function renderCuts() {
+  const categories = [...new Set(db.products.map((p) => p.category))];
+
+  $('#cuts-filter').innerHTML = ['All', ...categories].map((c) => `
+    <button class="chip ${c === cutsFilter ? 'active' : ''}" data-filter="${esc(c)}">
+      ${c === 'All' ? '🍽️ All' : (CATEGORY_EMOJI[c] || '🛒') + ' ' + esc(c)}
+    </button>`).join('');
+  $('#cuts-filter').querySelectorAll('.chip').forEach((btn) => {
+    btn.addEventListener('click', () => { cutsFilter = btn.dataset.filter; renderCuts(); });
+  });
+
+  const products = db.products.filter((p) => cutsFilter === 'All' || p.category === cutsFilter);
+
+  $('#cuts-grid').innerHTML = products.map((p) => {
+    const rows = db.stores
+      .map((s) => ({ store: s, rec: priceFor(p.id, s.id) }))
+      .filter((r) => r.rec)
+      .sort((a, b) => effectivePrice(a.rec) - effectivePrice(b.rec));
+    const noPrice = db.stores.filter((s) => !priceFor(p.id, s.id));
+    const best = rows.length ? effectivePrice(rows[0].rec) : null;
+    const inList = shoppingList[p.id] != null;
+
+    return `
+      <div class="cut-card">
+        <div class="cut-head">
+          <span class="cut-emoji">${CATEGORY_EMOJI[p.category] || '🛒'}</span>
+          <div>
+            <div class="cut-name">${esc(p.name)}</div>
+            <div class="muted small">${esc(p.category)} · per lb</div>
+          </div>
+          <button class="btn small ${inList ? '' : 'primary'}" data-cut-add="${p.id}">
+            ${inList ? '✓ On list' : '+ Add to list'}
+          </button>
+        </div>
+        ${rows.length === 0 ? '<p class="hint">No prices yet — add some in the Price Board tab.</p>' : `
+        <table class="mini cut-prices">
+          ${rows.map((r, i) => {
+            const eff = effectivePrice(r.rec);
+            const link = r.store.searchUrl
+              ? `<a class="check-link" target="_blank" rel="noopener" title="Check on ${esc(r.store.name)}'s site"
+                   href="${esc(r.store.searchUrl.replace('{q}', encodeURIComponent(p.name)))}">🔗</a>` : '';
+            return `<tr class="${i === 0 ? 'best-row' : ''}">
+              <td>${i === 0 ? '🏆 ' : ''}${esc(r.store.name)}${link}</td>
+              <td class="r">${fmt(eff)}${r.rec.salePricePerLb != null ? ' 🔥' : ''}${r.rec.source === 'estimate' ? '<sup>~</sup>' : ''}</td>
+              <td class="r muted small">${i === 0 ? '' : '+' + fmt(eff - best)}</td>
+            </tr>`;
+          }).join('')}
+        </table>`}
+        ${noPrice.length > 0 && rows.length > 0
+          ? `<p class="hint no-carry">Not priced: ${noPrice.map((s) => esc(s.name)).join(', ')}</p>` : ''}
+      </div>`;
+  }).join('');
+
+  $('#cuts-grid').querySelectorAll('[data-cut-add]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.cutAdd;
+      if (shoppingList[id] != null) delete shoppingList[id];
+      else shoppingList[id] = 1;
+      saveList();
+      renderShopList();
+      renderResults();
+      renderCuts();
+    });
+  });
+}
+
 // ---------- rendering: price board tab ----------
 
 function renderPriceTable() {
@@ -366,6 +438,7 @@ function esc(s) {
 function renderAll() {
   renderShopList();
   renderResults();
+  renderCuts();
   renderPriceTable();
   renderManage();
 }

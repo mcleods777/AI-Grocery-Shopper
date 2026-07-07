@@ -13,6 +13,7 @@
     <p class="tagline">Pick your meats — see which store saves you the most.</p>
     <nav id="tabs">
       <button class="tab active" data-tab="shop">🛒 Shopping List</button>
+      <button class="tab" data-tab="cuts">🍖 Cuts &amp; Prices</button>
       <button class="tab" data-tab="prices">💲 Price Board</button>
       <button class="tab" data-tab="manage">⚙️ Manage</button>
     </nav>
@@ -32,6 +33,13 @@
           <div id="results"></div>
         </div>
       </div>
+    </section>
+
+    <!-- ============ CUTS & PRICES TAB ============ -->
+    <section id="tab-cuts" class="tab-panel">
+      <h2>Cuts &amp; Prices <span class="hint-inline">(every store's price under each cut, cheapest first)</span></h2>
+      <div id="cuts-filter" class="filter-bar"></div>
+      <div id="cuts-grid"></div>
     </section>
 
     <!-- ============ PRICE BOARD TAB ============ -->

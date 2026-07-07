@@ -103,6 +103,34 @@ table.rank .best td { font-weight: 700; }
 .partial-row { padding: 0.35rem 0; border-top: 1px solid var(--border); font-size: 0.9rem; }
 .partial-row:first-of-type { border-top: none; }
 
+/* ----- cuts & prices ----- */
+.filter-bar { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.chip {
+  border: 1px solid var(--border); background: var(--card); border-radius: 999px;
+  padding: 0.35rem 0.9rem; font-size: 0.9rem; cursor: pointer; color: var(--muted);
+}
+.chip.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.chip:hover:not(.active) { background: var(--accent-soft); }
+
+#cuts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+.cut-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  padding: 0.9rem 1rem;
+}
+.cut-head { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem; }
+.cut-head > div { flex: 1; }
+.cut-emoji { font-size: 1.6rem; }
+.cut-name { font-weight: 700; }
+.small { font-size: 0.8rem; }
+table.cut-prices .best-row td { background: var(--green-soft); font-weight: 700; color: var(--green); }
+table.cut-prices .best-row td .muted { color: var(--green); }
+table.cut-prices td:first-child { width: 60%; }
+.no-carry { margin: 0.5rem 0 0; }
+
 /* ----- price board ----- */
 .table-wrap { overflow-x: auto; background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
 #price-table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
