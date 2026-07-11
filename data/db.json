@@ -1,6 +1,6 @@
 {
   "meta": {
-    "version": 3,
+    "version": 4,
     "notes": "Per-lb price estimates for the West Des Moines / 50265 area, seeded 2026-07-07. Verify against weekly ads and update in the app."
   },
   "stores": [
@@ -37,8 +37,8 @@
     {
       "id": "costco",
       "name": "Costco",
-      "searchUrl": "https://www.costco.com/CatalogSearch?keyword={q}",
-      "notes": "Membership required; bulk packs (3-7 lb)"
+      "searchUrl": "https://sameday.costco.com/store/costco/s?k={q}",
+      "notes": "Membership required; bulk packs. Link shows same-day delivery prices (~15-20% over warehouse shelf)"
     },
     {
       "id": "samsclub",
@@ -218,11 +218,17 @@
     {
       "productId": "ground-beef-80-20",
       "storeId": "costco",
-      "pricePerLb": 4.99,
+      "pricePerLb": 5.99,
       "salePricePerLb": null,
-      "note": "~5-6 lb pack",
-      "updated": "2026-07-07",
-      "source": "estimate"
+      "note": "88/12 lean (closest Costco carries), ~6 lb tray, warehouse price",
+      "updated": "2026-07-11",
+      "source": "estimate",
+      "history": [
+        {
+          "price": 4.99,
+          "date": "2026-07-07"
+        }
+      ]
     },
     {
       "productId": "ground-beef-80-20",
