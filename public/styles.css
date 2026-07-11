@@ -125,6 +125,9 @@ table.rank .best td { font-weight: 700; }
 .cut-head > div { flex: 1; }
 .cut-emoji { font-size: 1.6rem; }
 .cut-name { font-weight: 700; }
+.btn.ai-check { margin: 0 0 0.5rem; background: var(--accent-soft); color: var(--accent); width: 100%; }
+.btn.ai-check:hover:not(:disabled) { background: #f6d9d2; }
+.btn.ai-check:disabled { opacity: 0.6; cursor: wait; }
 .small { font-size: 0.8rem; }
 table.cut-prices .best-row td { background: var(--green-soft); font-weight: 700; color: var(--green); }
 table.cut-prices .best-row td .muted { color: var(--green); }

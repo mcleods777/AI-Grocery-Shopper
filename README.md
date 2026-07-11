@@ -56,6 +56,17 @@ One-time setup in the Vercel dashboard: project → **Storage** → **Create Dat
 
 Until Blob storage is connected, the site falls back to **browser-only mode**: the bundled seed database loads and edits save to that device's localStorage. When a newer seed ships (fixed store links, verified prices), it's merged into saved copies automatically — user-edited prices are never overwritten.
 
+## 🤖 AI price checks
+
+With an Anthropic API key configured, the hosted app can research prices for you. Each cut card gets an **"🤖 AI price check"** button: Claude (Opus 4.8) searches the web — store sites, weekly ads, delivery listings, localized to West Des Moines — converts what it finds to per-lb, and writes credible prices into the shared database with history (so the ▲/▼ badges react). Findings it can't verify are skipped, never guessed; delivery-service prices get a note and lower confidence; prices you set by hand within the last week are never overwritten. A daily schedule (noon UTC) also refreshes the two stalest products automatically.
+
+Setup (Vercel dashboard → Settings → Environment Variables):
+
+1. `ANTHROPIC_API_KEY` — create one at https://console.anthropic.com (requires the Blob store from the section above).
+2. Optional `CRON_SECRET` — protects the daily-refresh endpoint from strangers triggering it.
+
+Rough cost: each button press ≈ $0.15–0.40 of API usage (one Opus call with up to 8 web searches); the daily auto-refresh ≈ $0.30–0.80/day. Remove the `crons` block in `vercel.json` to disable the schedule and keep it button-only.
+
 ## Why not automatic live prices?
 
 Grocery chains don't offer public price APIs, and their websites actively block automated scraping (and prices vary by *store location*, not just chain). So this app takes the reliable route: a price database **you control**, plus one-click links to each store's site to make manual verification fast. 

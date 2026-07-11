@@ -4,6 +4,8 @@ let db = null; // { stores, products, prices }
 // True when there is no writable backend (e.g. static hosting on Vercel);
 // price/db edits then persist to this browser's localStorage instead.
 let staticMode = false;
+// True when the backend can research prices with AI (/api/refresh-prices).
+let aiAvailable = false;
 // Shopping list: { [productId]: lbs } — persisted in localStorage.
 let shoppingList = JSON.parse(localStorage.getItem('shoppingList') || '{}');
 
@@ -313,6 +315,7 @@ function renderCuts() {
             ${inList ? '✓ On list' : '+ Add to list'}
           </button>
         </div>
+        ${aiAvailable ? `<button class="btn small ai-check" data-ai-check="${p.id}">🤖 AI price check</button>` : ''}
         ${rows.length === 0 ? '<p class="hint">No prices yet — add some in the Price Board tab.</p>' : `
         <table class="mini cut-prices">
           ${rows.map((r, i) => {
@@ -343,6 +346,53 @@ function renderCuts() {
       renderCuts();
     });
   });
+  $('#cuts-grid').querySelectorAll('[data-ai-check]').forEach((btn) => {
+    btn.addEventListener('click', () => aiPriceCheck(btn.dataset.aiCheck, btn));
+  });
+}
+
+// Ask the backend to research this product's current prices with AI
+// (Claude + web search) and fold the findings into the shared database.
+async function aiPriceCheck(productId, btn) {
+  btn.disabled = true;
+  btn.textContent = '🤖 Checking…';
+  toast(`🤖 Researching ${productName(productId)} prices online — this can take a minute or two…`);
+  try {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const headers = { 'Content-Type': 'application/json' };
+      const pin = localStorage.getItem('editPin');
+      if (pin) headers['x-edit-pin'] = pin;
+      const res = await fetch('/api/refresh-prices', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ productId }),
+      });
+      if (res.status === 401 && attempt === 0) {
+        const entered = prompt('This site requires a PIN to save changes:');
+        if (entered == null) return;
+        localStorage.setItem('editPin', entered.trim());
+        continue;
+      }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (res.status === 401) localStorage.removeItem('editPin');
+        toast('⚠️ AI check failed: ' + (data.error || res.status), true);
+        return;
+      }
+      // Reload the shared database so the new prices and trend badges show.
+      const fresh = await fetch('/api/db');
+      if (fresh.ok) db = await fresh.json();
+      renderAll();
+      toast(`✅ ${data.product}: updated ${data.updated.length} store price${data.updated.length === 1 ? '' : 's'}` +
+        (data.skipped.length ? ` (${data.skipped.length} skipped)` : ''));
+      return;
+    }
+  } catch (e) {
+    toast('⚠️ AI check failed: ' + e.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🤖 AI price check';
+  }
 }
 
 // ---------- rendering: price board tab ----------
@@ -572,6 +622,17 @@ async function loadDb() {
   }
   return seed;
 }
+
+// Learn whether the backend supports AI price research (non-blocking).
+fetch('/api/refresh-prices')
+  .then((r) => (r.ok && (r.headers.get('content-type') || '').includes('json') ? r.json() : null))
+  .then((info) => {
+    if (info && info.available) {
+      aiAvailable = true;
+      if (db) renderCuts();
+    }
+  })
+  .catch(() => {});
 
 loadDb()
   .then((data) => {
