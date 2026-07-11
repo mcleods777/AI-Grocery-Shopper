@@ -528,13 +528,28 @@ async function loadDb() {
   // Static hosting (e.g. Vercel): edits live in this browser's localStorage,
   // seeded from the bundled copy of the database.
   staticMode = true;
-  const saved = localStorage.getItem('dbLocal');
-  if (saved) {
-    try { return JSON.parse(saved); } catch (_) { /* corrupted — reseed */ }
-  }
   const res = await fetch('db-seed.json');
   if (!res.ok) throw new Error('seed fetch failed');
-  return res.json();
+  const seed = await res.json();
+  const saved = localStorage.getItem('dbLocal');
+  if (saved) {
+    try {
+      const local = JSON.parse(saved);
+      // A newer seed carries fixes (e.g. corrected store search links).
+      // Adopt non-price seed fields for stores the user hasn't renamed.
+      if ((seed.meta?.version || 0) > (local.meta?.version || 0)) {
+        for (const s of local.stores) {
+          const fresh = seed.stores.find((x) => x.id === s.id);
+          if (fresh) s.searchUrl = fresh.searchUrl;
+        }
+        local.meta = local.meta || {};
+        local.meta.version = seed.meta.version;
+        localStorage.setItem('dbLocal', JSON.stringify(local));
+      }
+      return local;
+    } catch (_) { /* corrupted — reseed */ }
+  }
+  return seed;
 }
 
 loadDb()

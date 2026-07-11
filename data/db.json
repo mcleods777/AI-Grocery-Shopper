@@ -1,6 +1,6 @@
 {
   "meta": {
-    "version": 1,
+    "version": 2,
     "notes": "Per-lb price estimates for the West Des Moines / 50265 area, seeded 2026-07-07. Verify against weekly ads and update in the app."
   },
   "stores": [
@@ -19,19 +19,19 @@
     {
       "id": "fareway",
       "name": "Fareway",
-      "searchUrl": "https://shop.fareway.com/search?search_term={q}",
+      "searchUrl": "https://www.fareway.com/search?q={q}",
       "notes": "Full-service meat counter; weekly ad"
     },
     {
       "id": "aldi",
       "name": "Aldi",
-      "searchUrl": "https://www.aldi.us/results?q={q}",
+      "searchUrl": "https://www.aldi.us/store/aldi/search/{q}",
       "notes": "Limited selection, usually cheapest; Wed specials"
     },
     {
       "id": "traderjoes",
       "name": "Trader Joe's",
-      "searchUrl": "https://www.traderjoes.com/home/search?q={q}",
+      "searchUrl": "https://www.traderjoes.com/home/search?q={q}&section=products",
       "notes": "Small meat selection, mostly prepackaged"
     },
     {
@@ -43,7 +43,7 @@
     {
       "id": "samsclub",
       "name": "Sam's Club",
-      "searchUrl": "https://www.samsclub.com/s/{q}",
+      "searchUrl": "https://www.samsclub.com/search?q={q}",
       "notes": "Membership required; bulk packs (3-7 lb)"
     },
     {
@@ -55,19 +55,19 @@
     {
       "id": "wholefoods",
       "name": "Whole Foods",
-      "searchUrl": "https://www.wholefoodsmarket.com/search?text={q}",
+      "searchUrl": "https://www.wholefoodsmarket.com/grocery/search?k={q}",
       "notes": "WDM; pricier, all-natural; Prime member deals"
     },
     {
       "id": "freshthyme",
       "name": "Fresh Thyme",
-      "searchUrl": "https://shop.freshthyme.com/search?search_term={q}",
+      "searchUrl": "https://ww2.freshthyme.com/search?q={q}",
       "notes": "WDM (University Ave); strong weekly meat sales"
     },
     {
       "id": "naturalgrocers",
       "name": "Natural Grocers",
-      "searchUrl": "https://www.naturalgrocers.com/search?keys={q}",
+      "searchUrl": "https://www.naturalgrocers.com/our-products?search={q}",
       "notes": "Organic/natural only; limited meat selection"
     }
   ],
