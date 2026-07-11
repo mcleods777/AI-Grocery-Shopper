@@ -5,6 +5,9 @@
   "scripts": {
     "serve": "node server.js"
   },
+  "dependencies": {
+    "@vercel/blob": "^2.6.1"
+  },
   "engines": {
     "node": ">=18"
   },

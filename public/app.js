@@ -51,17 +51,25 @@ async function saveDb() {
     localStorage.setItem('dbLocal', JSON.stringify(db));
     return true;
   }
-  const res = await fetch('/api/db', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(db),
-  });
-  if (!res.ok) {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const headers = { 'Content-Type': 'application/json' };
+    const pin = localStorage.getItem('editPin');
+    if (pin) headers['x-edit-pin'] = pin;
+    const res = await fetch('/api/db', { method: 'PUT', headers, body: JSON.stringify(db) });
+    if (res.ok) return true;
+    if (res.status === 401 && attempt === 0) {
+      // Site owner set an EDIT_PIN — ask once and remember it on this device.
+      const entered = prompt('This site requires a PIN to save changes:');
+      if (entered == null) return false;
+      localStorage.setItem('editPin', entered.trim());
+      continue;
+    }
     const err = await res.json().catch(() => ({}));
+    if (res.status === 401) localStorage.removeItem('editPin');
     toast('⚠️ Save failed: ' + (err.error || res.status), true);
     return false;
   }
-  return true;
+  return false;
 }
 
 function saveList() {
@@ -517,11 +525,16 @@ $('#add-store-form').addEventListener('submit', async (e) => {
 
 // Boot
 async function loadDb() {
-  // Prefer the local server API (node server.js), which persists to data/db.json.
+  // Prefer the backend API: the local server (node server.js) or, when
+  // hosted on Vercel with Blob storage connected, the cloud-synced database.
   try {
     const res = await fetch('/api/db');
     if (res.ok && (res.headers.get('content-type') || '').includes('json')) {
-      return res.json();
+      // The cloud endpoint reports x-db-writable: 0 when storage isn't
+      // connected yet — saves would fail, so use browser-only mode instead.
+      if (res.headers.get('x-db-writable') !== '0') {
+        return res.json();
+      }
     }
   } catch (_) { /* no backend — fall through to static mode */ }
 
@@ -535,12 +548,20 @@ async function loadDb() {
   if (saved) {
     try {
       const local = JSON.parse(saved);
-      // A newer seed carries fixes (e.g. corrected store search links).
-      // Adopt non-price seed fields for stores the user hasn't renamed.
+      // A newer seed carries fixes: corrected store search links and
+      // updated/verified prices. Adopt them — but never overwrite a price
+      // the user edited themselves (source === 'user').
       if ((seed.meta?.version || 0) > (local.meta?.version || 0)) {
         for (const s of local.stores) {
           const fresh = seed.stores.find((x) => x.id === s.id);
           if (fresh) s.searchUrl = fresh.searchUrl;
+        }
+        for (const fresh of seed.prices) {
+          const rec = local.prices.find(
+            (x) => x.productId === fresh.productId && x.storeId === fresh.storeId
+          );
+          if (rec && rec.source !== 'user') Object.assign(rec, fresh);
+          else if (!rec) local.prices.push(fresh);
         }
         local.meta = local.meta || {};
         local.meta.version = seed.meta.version;

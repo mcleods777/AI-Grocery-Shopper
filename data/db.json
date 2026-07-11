@@ -1,6 +1,6 @@
 {
   "meta": {
-    "version": 2,
+    "version": 3,
     "notes": "Per-lb price estimates for the West Des Moines / 50265 area, seeded 2026-07-07. Verify against weekly ads and update in the app."
   },
   "stores": [
@@ -194,11 +194,17 @@
     {
       "productId": "ground-beef-80-20",
       "storeId": "aldi",
-      "pricePerLb": 4.75,
+      "pricePerLb": 5.99,
       "salePricePerLb": null,
-      "note": "",
-      "updated": "2026-07-07",
-      "source": "estimate"
+      "note": "80% lean, ~2 lb pkg",
+      "updated": "2026-07-11",
+      "source": "verified",
+      "history": [
+        {
+          "price": 4.75,
+          "date": "2026-07-07"
+        }
+      ]
     },
     {
       "productId": "ground-beef-80-20",
@@ -257,11 +263,17 @@
     {
       "productId": "ground-beef-90-10",
       "storeId": "aldi",
-      "pricePerLb": 5.85,
+      "pricePerLb": 6.99,
       "salePricePerLb": null,
-      "note": "",
-      "updated": "2026-07-07",
-      "source": "estimate"
+      "note": "fresh 90% ground sirloin",
+      "updated": "2026-07-11",
+      "source": "verified",
+      "history": [
+        {
+          "price": 5.85,
+          "date": "2026-07-07"
+        }
+      ]
     },
     {
       "productId": "ground-beef-90-10",

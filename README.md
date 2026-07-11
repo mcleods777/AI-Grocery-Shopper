@@ -48,9 +48,13 @@ Everything lives in one human-readable file: **`data/db.json`** — stores, item
 
 > **Important:** the seeded prices are realistic *estimates* (Midwest, mid-2026) meant as a starting point. Meat prices swing week to week — use the 🔗 links and weekly ads to verify, click the price, and type in the real number. After one shopping cycle of updates the comparisons will reflect *your* actual stores.
 
-## Hosted on Vercel (browser-only mode)
+## Hosted on Vercel
 
-The app also runs as a static site (no server) — that's how the Vercel deployment works. In this mode the seeded database ships with the site (`public/db-seed.json`, generated from `data/db.json` at build time) and **your price edits, added items, and stores are saved in your browser's localStorage** — private to your device, and they survive reloads. Different devices keep their own copies. To make a price change part of the site for every device, edit `data/db.json` in the repo and redeploy.
+The Vercel deployment serves the same app with a serverless `/api/db` backed by **Vercel Blob** storage, so **price edits sync across all devices** sharing the site.
+
+One-time setup in the Vercel dashboard: project → **Storage** → **Create Database** → **Blob** → connect it to the project (this adds the `BLOB_READ_WRITE_TOKEN` env var), then redeploy. Optionally add an `EDIT_PIN` env var — the app will then ask for that PIN once per device before allowing saves, so strangers who find the URL can't change your prices.
+
+Until Blob storage is connected, the site falls back to **browser-only mode**: the bundled seed database loads and edits save to that device's localStorage. When a newer seed ships (fixed store links, verified prices), it's merged into saved copies automatically — user-edited prices are never overwritten.
 
 ## Why not automatic live prices?
 
