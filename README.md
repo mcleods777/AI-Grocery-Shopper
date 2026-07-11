@@ -58,14 +58,16 @@ Until Blob storage is connected, the site falls back to **browser-only mode**: t
 
 ## 🤖 AI price checks
 
-With an Anthropic API key configured, the hosted app can research prices for you. Each cut card gets an **"🤖 AI price check"** button: Claude (Opus 4.8) searches the web — store sites, weekly ads, delivery listings, localized to West Des Moines — converts what it finds to per-lb, and writes credible prices into the shared database with history (so the ▲/▼ badges react). Findings it can't verify are skipped, never guessed; delivery-service prices get a note and lower confidence; prices you set by hand within the last week are never overwritten. A daily schedule (noon UTC) also refreshes the two stalest products automatically.
+With an AI API key configured, the hosted app can research prices for you. Each cut card gets an **"🤖 AI price check"** button: the model searches the web — store sites, weekly ads, delivery listings, localized to West Des Moines — converts what it finds to per-lb, and writes credible prices into the shared database with history (so the ▲/▼ badges react). Findings it can't verify are skipped, never guessed; delivery-service prices get a note and lower confidence; prices you set by hand within the last week are never overwritten. A daily schedule (noon UTC) also refreshes the two stalest products automatically.
 
-Setup (Vercel dashboard → Settings → Environment Variables):
+Two providers are supported — configure either or both (Vercel dashboard → Settings → Environment Variables; both need the Blob store from the section above):
 
-1. `ANTHROPIC_API_KEY` — create one at https://console.anthropic.com (requires the Blob store from the section above).
-2. Optional `CRON_SECRET` — protects the daily-refresh endpoint from strangers triggering it.
+| Provider | Env var | Get a key | Cost |
+|---|---|---|---|
+| **Gemini** (default) | `GEMINI_API_KEY` | https://aistudio.google.com — free tier, no card | $0 within free daily quotas |
+| **Claude** (Opus 4.8) | `ANTHROPIC_API_KEY` | https://console.anthropic.com | ≈ $0.15–0.40 per check; daily refresh ≈ $0.30–0.80/day |
 
-Rough cost: each button press ≈ $0.15–0.40 of API usage (one Opus call with up to 8 web searches); the daily auto-refresh ≈ $0.30–0.80/day. Remove the `crons` block in `vercel.json` to disable the schedule and keep it button-only.
+When both are configured, an **AI picker** appears in the Cuts & Prices filter bar so you can choose per device; the daily auto-refresh uses Gemini when available. Optional `CRON_SECRET` protects the daily-refresh endpoint; optional `GEMINI_MODEL` overrides the default `gemini-2.5-flash`. Remove the `crons` block in `vercel.json` to disable the schedule and keep it button-only.
 
 ## Why not automatic live prices?
 

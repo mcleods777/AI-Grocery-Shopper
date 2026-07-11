@@ -6,6 +6,13 @@ let db = null; // { stores, products, prices }
 let staticMode = false;
 // True when the backend can research prices with AI (/api/refresh-prices).
 let aiAvailable = false;
+// Configured AI providers (e.g. ['gemini','claude']) and the user's pick.
+let aiProviders = [];
+function aiProvider() {
+  const saved = localStorage.getItem('aiProvider');
+  return aiProviders.includes(saved) ? saved : aiProviders[0];
+}
+const AI_LABELS = { gemini: '✨ Gemini', claude: '🤖 Claude' };
 // Shopping list: { [productId]: lbs } — persisted in localStorage.
 let shoppingList = JSON.parse(localStorage.getItem('shoppingList') || '{}');
 
@@ -287,9 +294,20 @@ function renderCuts() {
   $('#cuts-filter').innerHTML = ['All', ...categories].map((c) => `
     <button class="chip ${c === cutsFilter ? 'active' : ''}" data-filter="${esc(c)}">
       ${c === 'All' ? '🍽️ All' : (CATEGORY_EMOJI[c] || '🛒') + ' ' + esc(c)}
-    </button>`).join('');
-  $('#cuts-filter').querySelectorAll('.chip').forEach((btn) => {
+    </button>`).join('')
+    + (aiAvailable && aiProviders.length > 1 ? `
+    <span class="ai-picker">AI:
+      ${aiProviders.map((p) => `
+        <button class="chip ${p === aiProvider() ? 'active' : ''}" data-ai-provider="${p}">${AI_LABELS[p] || p}</button>`).join('')}
+    </span>` : '');
+  $('#cuts-filter').querySelectorAll('.chip[data-filter]').forEach((btn) => {
     btn.addEventListener('click', () => { cutsFilter = btn.dataset.filter; renderCuts(); });
+  });
+  $('#cuts-filter').querySelectorAll('.chip[data-ai-provider]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      localStorage.setItem('aiProvider', btn.dataset.aiProvider);
+      renderCuts();
+    });
   });
 
   const products = db.products.filter((p) => cutsFilter === 'All' || p.category === cutsFilter);
@@ -365,7 +383,7 @@ async function aiPriceCheck(productId, btn) {
       const res = await fetch('/api/refresh-prices', {
         method: 'POST',
         headers,
-        body: JSON.stringify({ productId }),
+        body: JSON.stringify({ productId, provider: aiProvider() }),
       });
       if (res.status === 401 && attempt === 0) {
         const entered = prompt('This site requires a PIN to save changes:');
@@ -383,7 +401,7 @@ async function aiPriceCheck(productId, btn) {
       const fresh = await fetch('/api/db');
       if (fresh.ok) db = await fresh.json();
       renderAll();
-      toast(`✅ ${data.product}: updated ${data.updated.length} store price${data.updated.length === 1 ? '' : 's'}` +
+      toast(`✅ ${data.product} (${AI_LABELS[data.provider] || data.provider}): updated ${data.updated.length} store price${data.updated.length === 1 ? '' : 's'}` +
         (data.skipped.length ? ` (${data.skipped.length} skipped)` : ''));
       return;
     }
@@ -629,6 +647,7 @@ fetch('/api/refresh-prices')
   .then((info) => {
     if (info && info.available) {
       aiAvailable = true;
+      aiProviders = info.providers || [];
       if (db) renderCuts();
     }
   })
