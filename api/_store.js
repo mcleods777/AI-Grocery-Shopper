@@ -6,8 +6,16 @@ const seed = require('../data/db.json');
 
 const BLOB_PATH = 'grocery-price-scout/db.json';
 
+// Vercel names the store's token <PREFIX>_READ_WRITE_TOKEN, where the prefix
+// is chosen when connecting the store (default "BLOB"). Accept any of them.
+function blobToken() {
+  if (process.env.BLOB_READ_WRITE_TOKEN) return process.env.BLOB_READ_WRITE_TOKEN;
+  const key = Object.keys(process.env).find((k) => k.endsWith('_READ_WRITE_TOKEN'));
+  return key ? process.env[key] : null;
+}
+
 function isConfigured() {
-  return !!process.env.BLOB_READ_WRITE_TOKEN;
+  return !!blobToken();
 }
 
 function validateDb(db) {
@@ -53,7 +61,7 @@ function mergeSeed(stored) {
 // or the bundled seed if nothing has been stored yet.
 async function readDb() {
   if (!isConfigured()) return { db: seed, stored: false };
-  const { blobs } = await list({ prefix: BLOB_PATH, limit: 1 });
+  const { blobs } = await list({ prefix: BLOB_PATH, limit: 1, token: blobToken() });
   if (blobs.length === 0) return { db: seed, stored: false };
   // Cache-bust with uploadedAt so we never read a stale CDN copy.
   const url = `${blobs[0].url}?v=${new Date(blobs[0].uploadedAt).getTime()}`;
@@ -68,6 +76,7 @@ async function writeDb(db) {
     contentType: 'application/json',
     addRandomSuffix: false,
     allowOverwrite: true,
+    token: blobToken(),
   });
 }
 
